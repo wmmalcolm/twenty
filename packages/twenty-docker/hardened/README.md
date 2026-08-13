@@ -30,12 +30,14 @@ requires HTTPS for every non-loopback URL.
 Build the audited image once:
 
 ```bash
-docker compose \
-  --env-file /secure/path/bill.env \
-  -f compose.yaml \
-  -f compose.build.yaml \
-  build server
+./build-instance.sh /secure/path/bill.env
 ```
+
+Before building, replace every SMTP placeholder in the environment file with a
+working account and verified sender. The preflight refuses placeholders, a
+dirty or mismatched source tree, environment files inside the build context,
+and any source revision other than the exact clean commit. The wrapper builds
+from a temporary `git archive` snapshot of that commit.
 
 Start one isolated instance:
 
@@ -47,18 +49,22 @@ docker compose \
 ```
 
 The Compose file always binds the application to `127.0.0.1`. For a public VPS,
-set `SERVER_URL` to the final `https://` domain, but do not enable its DNS or
-TLS proxy yet. Complete the first-owner signup through an SSH tunnel to the
-loopback port, verify the owner's email, and then lock and verify the workspace:
+set `SERVER_URL` to the final `https://` domain. Complete the first-owner signup
+through an SSH tunnel while the public firewall remains closed. To open the
+verification link, map the final domain to `127.0.0.1` on the operator Mac and
+tunnel local TCP port 443 to a temporary TLS proxy on the VPS that forwards only
+to the loopback app. The TLS proxy must use the final domain certificate; do not
+use plain HTTP or bypass certificate validation. Verify the owner's email, then
+lock and verify the workspace:
 
 ```bash
 ./lock-private-workspace.sh /secure/path/clip2commit.env
 ./verify-private-workspace.sh /secure/path/clip2commit.env
 ```
 
-Only after the verification command reports that the launch gate passed may a
-TLS-terminating reverse proxy expose the loopback port. Never expose the backend
-port in the host firewall.
+Only after the verification command reports that the launch gate passed may DNS
+be published and the existing TLS proxy become Internet reachable. Never expose
+the backend port in the host firewall.
 
 The lock command requires exactly one active, email-verified owner. It sets the
 workspace hidden, disables its public invite link and impersonation, and then

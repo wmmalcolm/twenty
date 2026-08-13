@@ -8,6 +8,13 @@ describe('buildVerifiedTlsOptions', () => {
     });
   });
 
+  it('extracts the certificate hostname from an accepted URL input', () => {
+    expect(buildVerifiedTlsOptions('https://imap.example.com')).toEqual({
+      rejectUnauthorized: true,
+      servername: 'imap.example.com',
+    });
+  });
+
   it.each(['203.0.113.10', '2001:db8::1', '[2001:db8::1]'])(
     'does not send an IP address as TLS servername: %s',
     (host) => {

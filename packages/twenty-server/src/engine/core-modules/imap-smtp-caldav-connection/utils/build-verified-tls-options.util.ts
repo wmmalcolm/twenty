@@ -8,7 +8,14 @@ type VerifiedTlsOptions = {
 export const buildVerifiedTlsOptions = (
   originalHost: string,
 ): VerifiedTlsOptions => {
-  const hostWithoutIpv6Brackets = originalHost.replace(/^\[|\]$/g, '');
+  const normalizedHost = (() => {
+    try {
+      return new URL(originalHost).hostname;
+    } catch {
+      return originalHost;
+    }
+  })();
+  const hostWithoutIpv6Brackets = normalizedHost.replace(/^\[|\]$/g, '');
 
   return {
     rejectUnauthorized: true,

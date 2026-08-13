@@ -48,6 +48,27 @@ describe('HttpTool', () => {
     expect(output.error).not.toContain('secret');
   });
 
+  it('sanitizes a URL echoed in an Axios response body', async () => {
+    const tool = buildTool(
+      jest.fn().mockRejectedValue({
+        isAxiosError: true,
+        message: 'Bad request',
+        response: {
+          data: 'Invalid https://user:password@example.com/hook?token=secret',
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+        },
+      }),
+    );
+
+    const output = await tool.execute(parameters, context);
+
+    expect(output.error).not.toContain('secret');
+    expect(output.error).not.toContain('password');
+    expect(output.result).not.toContain('secret');
+  });
+
   it('sanitizes a non-Axios error message', async () => {
     const tool = buildTool(
       jest

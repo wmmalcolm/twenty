@@ -37,6 +37,24 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Every active user must verify email before launch';
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM core.user u
+    JOIN core."userWorkspace" uw
+      ON uw."userId" = u.id AND uw."deletedAt" IS NULL
+    JOIN core.workspace w
+      ON w.id = uw."workspaceId" AND w."deletedAt" IS NULL
+    JOIN core."roleTarget" rt
+      ON rt."userWorkspaceId" = uw.id AND rt."workspaceId" = w.id
+    JOIN core.role r
+      ON r.id = rt."roleId" AND r."workspaceId" = w.id
+    WHERE u."deletedAt" IS NULL
+      AND u."canAccessFullAdminPanel" IS TRUE
+      AND r."canUpdateAllSettings" IS TRUE
+  ) THEN
+    RAISE EXCEPTION 'The active user must own an active admin membership';
+  END IF;
 END
 $$;
 
@@ -51,5 +69,20 @@ UPDATE core.user
 SET "canImpersonate" = false
 WHERE "deletedAt" IS NULL;
 SQL
+
+docker compose \
+  --env-file "$environment_file" \
+  -f "$script_directory/compose.yaml" \
+  stop server worker
+
+docker compose \
+  --env-file "$environment_file" \
+  -f "$script_directory/compose.yaml" \
+  exec -T redis sh -c 'redis-cli -a "$REDIS_PASSWORD" FLUSHDB >/dev/null'
+
+docker compose \
+  --env-file "$environment_file" \
+  -f "$script_directory/compose.yaml" \
+  up -d --wait server worker
 
 "$script_directory/verify-private-workspace.sh" "$environment_file"

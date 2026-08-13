@@ -33,11 +33,24 @@ SELECT
   (SELECT count(*) FROM core.user WHERE "deletedAt" IS NULL),
   (SELECT count(*) FROM core.user
     WHERE "deletedAt" IS NULL
-      AND ("isEmailVerified" IS NOT TRUE OR "canImpersonate" IS NOT FALSE));
+      AND ("isEmailVerified" IS NOT TRUE OR "canImpersonate" IS NOT FALSE)),
+  (SELECT count(*)
+    FROM core.user u
+    JOIN core."userWorkspace" uw
+      ON uw."userId" = u.id AND uw."deletedAt" IS NULL
+    JOIN core.workspace w
+      ON w.id = uw."workspaceId" AND w."deletedAt" IS NULL
+    JOIN core."roleTarget" rt
+      ON rt."userWorkspaceId" = uw.id AND rt."workspaceId" = w.id
+    JOIN core.role r
+      ON r.id = rt."roleId" AND r."workspaceId" = w.id
+    WHERE u."deletedAt" IS NULL
+      AND u."canAccessFullAdminPanel" IS TRUE
+      AND r."canUpdateAllSettings" IS TRUE);
 SQL
 )"
 
-if [ "$gate_result" != "1|0|1|0" ]; then
+if [ "$gate_result" != "1|0|1|0|1" ]; then
   echo "Private-workspace launch gate failed: $gate_result" >&2
   exit 1
 fi

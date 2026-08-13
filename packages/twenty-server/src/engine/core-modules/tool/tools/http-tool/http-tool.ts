@@ -18,6 +18,18 @@ import { type Tool } from 'src/engine/core-modules/tool/types/tool.type';
 
 const WORKFLOW_HTTP_TIMEOUT_MS = 15_000;
 const WORKFLOW_HTTP_MAX_BYTES = 10 * 1024 * 1024;
+const WORKFLOW_HTTP_ERROR_MAX_CHARS = 4096;
+
+const sanitizeErrorPayload = (value: unknown): string => {
+  const stringValue =
+    typeof value === 'string'
+      ? value
+      : value === undefined
+        ? 'HTTP request failed'
+        : JSON.stringify(value);
+
+  return sanitizeUrlsInText(stringValue).slice(0, WORKFLOW_HTTP_ERROR_MAX_CHARS);
+};
 
 @Injectable()
 export class HttpTool implements Tool {
@@ -77,19 +89,20 @@ export class HttpTool implements Tool {
       };
     } catch (error) {
       if (isAxiosError(error)) {
+        const sanitizedError = sanitizeErrorPayload(
+          error.response?.data ?? error.message,
+        );
+
         return {
           success: false,
           message: `HTTP ${method} request to ${sanitizedUrl} failed`,
-          error:
-            error.response?.data ||
-            sanitizeUrlsInText(error.message) ||
-            'HTTP request failed',
+          error: sanitizedError,
           status: error.response?.status,
           statusText: error.response?.statusText,
           headers: error.response?.headers as
             | Record<string, string>
             | undefined,
-          result: error.response?.data,
+          result: sanitizedError,
         };
       }
 
