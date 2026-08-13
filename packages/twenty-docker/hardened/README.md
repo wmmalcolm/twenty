@@ -39,7 +39,7 @@ dirty or mismatched source tree, environment files inside the build context,
 and any source revision other than the exact clean commit. The wrapper builds
 from a temporary `git archive` snapshot of that commit.
 
-After the final Codex Security diff scan completes, set
+After the final Codex Security full-repository revision scan completes, set
 `APPROVED_SOURCE_REVISION` to its exact reviewed commit and
 `APPROVAL_MANIFEST` to the absolute path of its completed, sealed
 `scan-manifest.json`. Also record its workbench scan ID in `APPROVED_SCAN_ID`
