@@ -78,8 +78,8 @@ docker compose \
 docker compose \
   --env-file "$environment_file" \
   -f "$script_directory/compose.yaml" \
-  run --rm --no-deps server \
-  node dist/command/command.js cache:flush \
+  run --rm --no-deps --entrypoint node server \
+  dist/command/command.js cache:flush \
   --namespace engine:core-entity
 
 docker compose \
