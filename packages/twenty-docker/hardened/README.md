@@ -42,16 +42,20 @@ from a temporary `git archive` snapshot of that commit.
 After the final Codex Security diff scan completes, set
 `APPROVED_SOURCE_REVISION` to its exact reviewed commit and
 `APPROVAL_MANIFEST` to the absolute path of its completed, sealed
-`scan-manifest.json`. Store that manifest outside this repository. The preflight
-rejects a local commit that is not bound to that external review artifact.
+`scan-manifest.json`. Also record its workbench scan ID in `APPROVED_SCAN_ID`
+and the operator-computed manifest SHA-256 in `APPROVAL_MANIFEST_SHA256`. Store
+that manifest outside this repository. The preflight rejects a local commit that
+is not bound to that exact external review artifact and full-repository scope.
 After the image build, the wrapper performs an authenticated TLS SMTP handshake
 and refuses to continue if the server, credentials, or certificate fail.
 
 The manifest is an operator approval record, not a cryptographic signature from
-Codex. Before setting these fields, the operator must compare the manifest path,
-scan ID, target revision, and sealed timestamp with the completed scan shown in
-the Codex Security workbench. The preflight validates the manifest structure and
-every sealed artifact digest, but this human comparison is the trust anchor.
+Codex. Before setting these fields, the operator must review every retained
+finding and coverage limitation, decide that deployment is approved, and compare
+the manifest path, scan ID, target revision, sealed timestamp, and SHA-256 with
+the completed full-repository scan shown in the Codex Security workbench. The
+preflight validates those recorded identities and every sealed artifact digest,
+but this human comparison and approval decision are the trust anchor.
 
 Start one isolated instance:
 

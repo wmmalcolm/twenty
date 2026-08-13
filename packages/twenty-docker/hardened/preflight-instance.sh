@@ -41,6 +41,8 @@ fi
 source_revision="$(sed -n 's/^SOURCE_REVISION=//p' "$environment_file")"
 approved_source_revision="$(sed -n 's/^APPROVED_SOURCE_REVISION=//p' "$environment_file")"
 approval_manifest="$(sed -n 's/^APPROVAL_MANIFEST=//p' "$environment_file")"
+approval_manifest_sha256="$(sed -n 's/^APPROVAL_MANIFEST_SHA256=//p' "$environment_file")"
+approved_scan_id="$(sed -n 's/^APPROVED_SCAN_ID=//p' "$environment_file")"
 
 if [ -z "$source_revision" ] || [ "$source_revision" != "$(git -C "$repository_root" rev-parse HEAD)" ]; then
   echo "Environment SOURCE_REVISION does not match the clean source HEAD." >&2
@@ -62,13 +64,19 @@ if [[ "$approval_manifest" == "$repository_root/"* ]]; then
   exit 65
 fi
 
-python3 - "$approval_manifest" "$source_revision" <<'PY'
+if [ "$(shasum -a 256 "$approval_manifest" | awk '{print $1}')" != "$approval_manifest_sha256" ]; then
+  echo "Approval manifest does not match the operator-recorded SHA-256." >&2
+  exit 65
+fi
+
+python3 - "$approval_manifest" "$source_revision" "$approved_scan_id" <<'PY'
 import json
 import pathlib
 import sys
 
 manifest_path = pathlib.Path(sys.argv[1])
 expected_revision = sys.argv[2]
+expected_scan_id = sys.argv[3]
 manifest = json.loads(manifest_path.read_text())
 scan = manifest.get('scan', {})
 target = scan.get('target', {})
@@ -81,6 +89,11 @@ if not scan.get('artifacts'):
     raise SystemExit('Approval scan has no sealed artifacts')
 if target.get('revision') != expected_revision:
     raise SystemExit('Approval scan target does not match source revision')
+if scan.get('id') != expected_scan_id:
+    raise SystemExit('Approval scan ID does not match operator approval')
+scope = scan.get('scope', {})
+if scope.get('includePaths') != ['.'] or scope.get('excludePaths') not in ([], None):
+    raise SystemExit('Approval scan must cover the full repository scope')
 
 for artifact in scan['artifacts']:
     artifact_path = manifest_path.parent / artifact['path']
