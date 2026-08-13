@@ -21,12 +21,16 @@ const WORKFLOW_HTTP_MAX_BYTES = 10 * 1024 * 1024;
 const WORKFLOW_HTTP_ERROR_MAX_CHARS = 4096;
 
 const sanitizeErrorPayload = (value: unknown): string => {
-  const stringValue =
-    typeof value === 'string'
-      ? value
-      : value === undefined
-        ? 'HTTP request failed'
-        : JSON.stringify(value);
+  let stringValue = 'HTTP request failed';
+
+  try {
+    stringValue =
+      typeof value === 'string'
+        ? value
+        : (JSON.stringify(value) ?? 'HTTP request failed');
+  } catch {
+    stringValue = 'HTTP request failed';
+  }
 
   return sanitizeUrlsInText(stringValue).slice(0, WORKFLOW_HTTP_ERROR_MAX_CHARS);
 };
@@ -49,6 +53,31 @@ export class HttpTool implements Tool {
     const headersCopy = { ...headers };
     const isMethodForBody = ['POST', 'PUT', 'PATCH'].includes(method);
     const sanitizedUrl = sanitizeUrlForLogging(url);
+    const sensitiveValues = [
+      ...(() => {
+        try {
+          const parsedUrl = new URL(url);
+
+          return [
+            parsedUrl.username,
+            parsedUrl.password,
+            ...parsedUrl.searchParams.values(),
+          ];
+        } catch {
+          return [];
+        }
+      })(),
+      ...Object.entries(headersCopy)
+        .filter(([name]) =>
+          /^(authorization|cookie|proxy-authorization|x-api-key)$/iu.test(name),
+        )
+        .map(([, value]) => String(value)),
+    ].filter((value) => value.length > 0);
+    const sanitizeRequestSecrets = (value: string) =>
+      sensitiveValues.reduce(
+        (sanitized, secret) => sanitized.split(secret).join('[REDACTED]'),
+        value,
+      );
 
     try {
       const axiosConfig: AxiosRequestConfig = {
@@ -89,8 +118,8 @@ export class HttpTool implements Tool {
       };
     } catch (error) {
       if (isAxiosError(error)) {
-        const sanitizedError = sanitizeErrorPayload(
-          error.response?.data ?? error.message,
+        const sanitizedError = sanitizeRequestSecrets(
+          sanitizeErrorPayload(error.response?.data ?? error.message),
         );
 
         return {
@@ -109,9 +138,9 @@ export class HttpTool implements Tool {
       return {
         success: false,
         message: `HTTP ${method} request to ${sanitizedUrl} failed`,
-        error:
-          error instanceof Error
-            ? sanitizeUrlsInText(error.message)
+          error:
+            error instanceof Error
+            ? sanitizeRequestSecrets(sanitizeUrlsInText(error.message))
             : 'HTTP request failed',
       };
     }

@@ -69,6 +69,43 @@ describe('HttpTool', () => {
     expect(output.result).not.toContain('secret');
   });
 
+  it('redacts request secrets echoed outside URL syntax', async () => {
+    const tool = buildTool(
+      jest.fn().mockRejectedValue({
+        isAxiosError: true,
+        message: 'Bad request',
+        response: {
+          data: { error: 'invalid token secret for password password' },
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {},
+        },
+      }),
+    );
+
+    const output = await tool.execute(parameters, context);
+
+    expect(output.error).not.toContain('secret');
+    expect(output.error).not.toContain('password');
+  });
+
+  it('uses a bounded generic error for an unserializable response body', async () => {
+    const cyclic: Record<string, unknown> = {};
+
+    cyclic.self = cyclic;
+    const tool = buildTool(
+      jest.fn().mockRejectedValue({
+        isAxiosError: true,
+        message: 'Bad request',
+        response: { data: cyclic, status: 400, headers: {} },
+      }),
+    );
+
+    const output = await tool.execute(parameters, context);
+
+    expect(output.error).toBe('HTTP request failed');
+  });
+
   it('sanitizes a non-Axios error message', async () => {
     const tool = buildTool(
       jest

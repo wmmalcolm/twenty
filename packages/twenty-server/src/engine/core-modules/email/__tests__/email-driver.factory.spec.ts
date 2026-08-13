@@ -112,6 +112,34 @@ describe('EmailDriverFactory', () => {
 
       expect(driver).toBeDefined();
       expect(driver.constructor.name).toBe('SmtpDriver');
+      expect(driver['transport'].options).toEqual(
+        expect.objectContaining({ secure: false, requireTLS: true }),
+      );
+    });
+
+    it('should require implicit TLS on SMTP port 465', () => {
+      jest
+        .spyOn(twentyConfigService, 'get')
+        .mockImplementation((key: string) => {
+          switch (key) {
+            case 'EMAIL_DRIVER':
+              return EmailDriver.SMTP;
+            case 'EMAIL_SMTP_HOST':
+              return 'smtp.example.com';
+            case 'EMAIL_SMTP_PORT':
+              return 465;
+            case 'EMAIL_SMTP_NO_TLS':
+              return false;
+            default:
+              return undefined;
+          }
+        });
+
+      const driver = factory['createDriver']();
+
+      expect(driver['transport'].options).toEqual(
+        expect.objectContaining({ secure: true }),
+      );
     });
 
     it('should throw error when smtp host is missing', () => {

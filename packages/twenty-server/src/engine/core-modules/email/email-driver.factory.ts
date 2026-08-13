@@ -71,6 +71,11 @@ export class EmailDriverFactory extends DriverFactoryBase<EmailDriverInterface> 
         if (noTLS) {
           options.secure = false;
           options.ignoreTLS = true;
+        } else if (port === 465) {
+          options.secure = true;
+        } else {
+          options.secure = false;
+          options.requireTLS = true;
         }
 
         return new SmtpDriver(options);

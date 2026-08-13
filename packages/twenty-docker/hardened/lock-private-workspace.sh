@@ -78,7 +78,9 @@ docker compose \
 docker compose \
   --env-file "$environment_file" \
   -f "$script_directory/compose.yaml" \
-  exec -T redis sh -c 'redis-cli -a "$REDIS_PASSWORD" FLUSHDB >/dev/null'
+  run --rm --no-deps server \
+  node dist/command/command.js cache:flush \
+  --namespace engine:core-entity
 
 docker compose \
   --env-file "$environment_file" \

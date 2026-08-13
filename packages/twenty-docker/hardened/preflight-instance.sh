@@ -39,11 +39,49 @@ if [ -n "$(git -C "$repository_root" status --porcelain)" ]; then
 fi
 
 source_revision="$(sed -n 's/^SOURCE_REVISION=//p' "$environment_file")"
+approved_source_revision="$(sed -n 's/^APPROVED_SOURCE_REVISION=//p' "$environment_file")"
+approval_manifest="$(sed -n 's/^APPROVAL_MANIFEST=//p' "$environment_file")"
 
 if [ -z "$source_revision" ] || [ "$source_revision" != "$(git -C "$repository_root" rev-parse HEAD)" ]; then
   echo "Environment SOURCE_REVISION does not match the clean source HEAD." >&2
   exit 65
 fi
+
+if [ "$approved_source_revision" != "$source_revision" ]; then
+  echo "APPROVED_SOURCE_REVISION must match the exact source revision." >&2
+  exit 65
+fi
+
+if [ -L "$approval_manifest" ] || [ ! -f "$approval_manifest" ]; then
+  echo "APPROVAL_MANIFEST must be a regular, non-symbolic-link file." >&2
+  exit 66
+fi
+
+if [[ "$approval_manifest" == "$repository_root/"* ]]; then
+  echo "The approval manifest must be stored outside the source repository." >&2
+  exit 65
+fi
+
+python3 - "$approval_manifest" "$source_revision" <<'PY'
+import json
+import pathlib
+import sys
+
+manifest_path = pathlib.Path(sys.argv[1])
+expected_revision = sys.argv[2]
+manifest = json.loads(manifest_path.read_text())
+scan = manifest.get('scan', {})
+target = scan.get('target', {})
+
+if manifest.get('documentType') != 'codex-security.scan-manifest':
+    raise SystemExit('Approval is not a Codex Security scan manifest')
+if scan.get('status') != 'completed' or not scan.get('sealedAt'):
+    raise SystemExit('Approval scan is not completed and sealed')
+if not scan.get('artifacts'):
+    raise SystemExit('Approval scan has no sealed artifacts')
+if target.get('revision') != expected_revision:
+    raise SystemExit('Approval scan target does not match source revision')
+PY
 
 required_keys=(
   EMAIL_FROM_ADDRESS

@@ -39,6 +39,14 @@ dirty or mismatched source tree, environment files inside the build context,
 and any source revision other than the exact clean commit. The wrapper builds
 from a temporary `git archive` snapshot of that commit.
 
+After the final Codex Security diff scan completes, set
+`APPROVED_SOURCE_REVISION` to its exact reviewed commit and
+`APPROVAL_MANIFEST` to the absolute path of its completed, sealed
+`scan-manifest.json`. Store that manifest outside this repository. The preflight
+rejects a local commit that is not bound to that external review artifact.
+After the image build, the wrapper performs an authenticated TLS SMTP handshake
+and refuses to continue if the server, credentials, or certificate fail.
+
 Start one isolated instance:
 
 ```bash
@@ -48,14 +56,15 @@ docker compose \
   up -d
 ```
 
-The Compose file always binds the application to `127.0.0.1`. For a public VPS,
-set `SERVER_URL` to the final `https://` domain. Complete the first-owner signup
-through an SSH tunnel while the public firewall remains closed. To open the
-verification link, map the final domain to `127.0.0.1` on the operator Mac and
-tunnel local TCP port 443 to a temporary TLS proxy on the VPS that forwards only
-to the loopback app. The TLS proxy must use the final domain certificate; do not
-use plain HTTP or bypass certificate validation. Verify the owner's email, then
-lock and verify the workspace:
+The Compose file always binds the application to `127.0.0.1`. Bootstrap a public
+VPS with a loopback URL such as `http://127.0.0.1:3023`, then complete first-owner
+signup and open the email-verification link through an SSH tunnel to that port.
+The link remains loopback-only and never crosses the network in plaintext. After
+verification, stop the instance, change `SERVER_URL` in its protected environment
+file to the final `https://` domain, run the preflight again, and start the
+instance. Keep public DNS, the TLS proxy listener, and the firewall ingress closed
+through this bootstrap and configuration change. Then lock and verify the
+workspace:
 
 ```bash
 ./lock-private-workspace.sh /secure/path/clip2commit.env
