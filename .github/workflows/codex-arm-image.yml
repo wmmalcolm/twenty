@@ -1,0 +1,70 @@
+name: Build sealed ARM64 Twenty image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_REVISION: bcb61d9514046c380269d0536a77c6a7421acc96
+  IMAGE_NAME: twenty-hardened
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
+    steps:
+      - name: Check out the sealed source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch --depth=1 origin "$SOURCE_REVISION"
+          git checkout --detach FETCH_HEAD
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          test "$(git rev-parse HEAD)" = "$SOURCE_REVISION"
+          test -z "$(git status --porcelain)"
+
+      - name: Reclaim ephemeral runner space
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo find /usr/local/lib/android -xdev -depth -delete 2>/dev/null || true
+          sudo find /usr/share/dotnet -xdev -depth -delete 2>/dev/null || true
+          sudo find /opt/ghc -xdev -depth -delete 2>/dev/null || true
+          df -h /
+
+      - name: Build and verify the native ARM64 image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            --target twenty \
+            --build-arg "APP_VERSION=0.0.0-hardened.${SOURCE_REVISION}" \
+            --file packages/twenty-docker/twenty/Dockerfile \
+            --tag "${IMAGE_NAME}:${SOURCE_REVISION}" \
+            .
+          test "$(docker image inspect "${IMAGE_NAME}:${SOURCE_REVISION}" --format '{{.Architecture}}')" = arm64
+          docker run --rm --entrypoint node "${IMAGE_NAME}:${SOURCE_REVISION}" \
+            -e "if (process.arch !== 'arm64') process.exit(2); console.log(process.arch)"
+
+      - name: Export the checksumed image
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact="twenty-hardened-${SOURCE_REVISION}-linux-arm64.tar.gz"
+          docker save "${IMAGE_NAME}:${SOURCE_REVISION}" | gzip -1 > "$artifact"
+          sha256sum "$artifact" > "${artifact}.sha256"
+          gzip -t "$artifact"
+
+      - name: Upload the image artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: twenty-hardened-${{ env.SOURCE_REVISION }}-linux-arm64
+          path: |
+            twenty-hardened-${{ env.SOURCE_REVISION }}-linux-arm64.tar.gz
+            twenty-hardened-${{ env.SOURCE_REVISION }}-linux-arm64.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
