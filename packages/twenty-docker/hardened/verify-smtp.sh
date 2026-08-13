@@ -13,8 +13,8 @@ script_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 docker compose \
   --env-file "$environment_file" \
   -f "$script_directory/compose.yaml" \
-  run --rm --no-deps server \
-  yarn node -e '
+  run --rm --no-deps --entrypoint yarn server \
+  node -e '
     const nodemailer = require("nodemailer");
     const port = Number(process.env.EMAIL_SMTP_PORT);
     const transport = nodemailer.createTransport({
