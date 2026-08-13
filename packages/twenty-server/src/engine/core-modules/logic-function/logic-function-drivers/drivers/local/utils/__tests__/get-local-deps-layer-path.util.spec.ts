@@ -5,15 +5,35 @@ import { getLocalDepsLayerPath } from 'src/engine/core-modules/logic-function/lo
 describe('getLocalDepsLayerPath', () => {
   it('joins the tmpdir folder, the deps segment and the yarnLockChecksum', () => {
     expect(
-      getLocalDepsLayerPath({ yarnLockChecksum: 'abc123' } as FlatApplication),
-    ).toBe(`${LOGIC_FUNCTION_EXECUTOR_TMPDIR_FOLDER}/deps/abc123`);
+      getLocalDepsLayerPath({
+        yarnLockChecksum: 'abc123',
+        workspaceId: 'workspace-1',
+        universalIdentifier: 'application-1',
+      } as FlatApplication),
+    ).toBe(
+      `${LOGIC_FUNCTION_EXECUTOR_TMPDIR_FOLDER}/deps/workspace-1/application-1/abc123`,
+    );
   });
 
   it('falls back to default when yarnLockChecksum is undefined', () => {
     expect(
       getLocalDepsLayerPath({
         yarnLockChecksum: undefined,
+        workspaceId: 'workspace-1',
+        universalIdentifier: 'application-1',
       } as unknown as FlatApplication),
-    ).toBe(`${LOGIC_FUNCTION_EXECUTOR_TMPDIR_FOLDER}/deps/default`);
+    ).toBe(
+      `${LOGIC_FUNCTION_EXECUTOR_TMPDIR_FOLDER}/deps/workspace-1/application-1/default`,
+    );
+  });
+
+  it('rejects a checksum that can escape the dependency cache', () => {
+    expect(() =>
+      getLocalDepsLayerPath({
+        yarnLockChecksum: '../../outside',
+        workspaceId: 'workspace-1',
+        universalIdentifier: 'application-1',
+      } as FlatApplication),
+    ).toThrow('Invalid yarn lock checksum');
   });
 });

@@ -15,6 +15,7 @@ import { isDefined } from 'twenty-shared/utils';
 import { Repository } from 'typeorm';
 
 import { WorkflowTriggerRestApiExceptionFilter } from 'src/engine/core-modules/workflow/filters/workflow-trigger-rest-api-exception.filter';
+import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { NoPermissionGuard } from 'src/engine/guards/no-permission.guard';
 import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
@@ -44,6 +45,7 @@ import { WorkflowTriggerWorkspaceService } from 'src/modules/workflow/workflow-t
 )
 export class WorkflowTriggerController {
   constructor(
+    private readonly twentyConfigService: TwentyConfigService,
     private readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     private readonly workflowTriggerWorkspaceService: WorkflowTriggerWorkspaceService,
     @InjectRepository(WorkspaceEntity)
@@ -57,6 +59,8 @@ export class WorkflowTriggerController {
     @Param('workflowId') workflowId: string,
     @Req() request: Request,
   ) {
+    this.assertPublicWorkflowWebhooksEnabled();
+
     return await this.runWorkflow({
       workflowId,
       payload: request.body || {},
@@ -70,7 +74,22 @@ export class WorkflowTriggerController {
     @Param('workspaceId') workspaceId: string,
     @Param('workflowId') workflowId: string,
   ) {
+    this.assertPublicWorkflowWebhooksEnabled();
+
     return await this.runWorkflow({ workflowId, workspaceId });
+  }
+
+  private assertPublicWorkflowWebhooksEnabled(): void {
+    if (
+      !this.twentyConfigService.get(
+        'UNSAFE_PUBLIC_WORKFLOW_WEBHOOK_TRIGGERS_ENABLED',
+      )
+    ) {
+      throw new WorkflowTriggerException(
+        'Public workflow webhook triggers are disabled',
+        WorkflowTriggerExceptionCode.FORBIDDEN,
+      );
+    }
   }
 
   private async runWorkflow({

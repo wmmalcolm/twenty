@@ -1,0 +1,15 @@
+services:
+  server:
+    build:
+      context: ../../..
+      dockerfile: packages/twenty-docker/twenty/Dockerfile
+      target: twenty
+      args:
+        APP_VERSION: hardened-${SOURCE_REVISION:?Set the audited source revision}
+  worker:
+    build:
+      context: ../../..
+      dockerfile: packages/twenty-docker/twenty/Dockerfile
+      target: twenty
+      args:
+        APP_VERSION: hardened-${SOURCE_REVISION:?Set the audited source revision}

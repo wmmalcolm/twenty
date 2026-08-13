@@ -12,6 +12,9 @@ import { type ToolOutput } from 'src/engine/core-modules/tool/types/tool-output.
 import { type ToolExecutionContext } from 'src/engine/core-modules/tool/types/tool-execution-context.type';
 import { type Tool } from 'src/engine/core-modules/tool/types/tool.type';
 
+const WORKFLOW_HTTP_TIMEOUT_MS = 15_000;
+const WORKFLOW_HTTP_MAX_BYTES = 10 * 1024 * 1024;
+
 @Injectable()
 export class HttpTool implements Tool {
   description =
@@ -35,6 +38,9 @@ export class HttpTool implements Tool {
         url,
         method: method,
         headers: headersCopy,
+        timeout: WORKFLOW_HTTP_TIMEOUT_MS,
+        maxContentLength: WORKFLOW_HTTP_MAX_BYTES,
+        maxBodyLength: WORKFLOW_HTTP_MAX_BYTES,
       };
 
       if (isMethodForBody && body) {

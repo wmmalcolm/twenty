@@ -1,0 +1,131 @@
+name: ${COMPOSE_PROJECT_NAME:?Set a unique Compose project name}
+
+x-app-environment: &app-environment
+  NODE_ENV: production
+  NODE_PORT: 3000
+  SERVER_URL: ${SERVER_URL:?Set the instance URL}
+  PG_DATABASE_URL: postgres://${PG_DATABASE_USER:?Set the database user}:${PG_DATABASE_PASSWORD:?Set the database password}@db:5432/${PG_DATABASE_NAME:-twenty}
+  REDIS_URL: redis://:${REDIS_PASSWORD:?Set the Redis password}@redis:6379
+  STORAGE_TYPE: local
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set a unique encryption key}
+  APP_SECRET: ${APP_SECRET:?Set a unique legacy application secret}
+  AUTH_PASSWORD_ENABLED: "true"
+  AUTH_GOOGLE_ENABLED: "false"
+  AUTH_MICROSOFT_ENABLED: "false"
+  SIGN_IN_PREFILLED: "false"
+  IS_MULTIWORKSPACE_ENABLED: "false"
+  IS_BILLING_ENABLED: "false"
+  ANALYTICS_ENABLED: "false"
+  TELEMETRY_ENABLED: "false"
+  OUTBOUND_HTTP_SAFE_MODE_ENABLED: "true"
+  CODE_INTERPRETER_TYPE: DISABLED
+  LOGIC_FUNCTION_TYPE: DISABLED
+  UNSAFE_PUBLIC_WORKFLOW_WEBHOOK_TRIGGERS_ENABLED: "false"
+
+x-app-security: &app-security
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  pids_limit: 512
+  init: true
+  restart: unless-stopped
+
+services:
+  server:
+    image: twenty-hardened:${SOURCE_REVISION:?Set the audited source revision}
+    pull_policy: never
+    <<: *app-security
+    environment:
+      <<: *app-environment
+      DISABLE_DB_MIGRATIONS: "false"
+      DISABLE_CRON_JOBS_REGISTRATION: "false"
+    volumes:
+      - server-data:/app/packages/twenty-server/.local-storage
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:?Set a unique loopback port}:3000"
+    networks:
+      - frontend
+      - data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://127.0.0.1:3000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  worker:
+    image: twenty-hardened:${SOURCE_REVISION:?Set the audited source revision}
+    pull_policy: never
+    <<: *app-security
+    command: ["yarn", "worker:prod"]
+    environment:
+      <<: *app-environment
+      DISABLE_DB_MIGRATIONS: "true"
+      DISABLE_CRON_JOBS_REGISTRATION: "true"
+    volumes:
+      - server-data:/app/packages/twenty-server/.local-storage
+    networks:
+      - data
+    depends_on:
+      server:
+        condition: service_healthy
+
+  db:
+    image: postgres:16@sha256:95206741a5b214807675e14165369d05b93a9cf692223b616d07cca227e74b0b
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    environment:
+      POSTGRES_DB: ${PG_DATABASE_NAME:-twenty}
+      POSTGRES_USER: ${PG_DATABASE_USER:?Set the database user}
+      POSTGRES_PASSWORD: ${PG_DATABASE_PASSWORD:?Set the database password}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\" -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7@sha256:e9b2e45ecd47fbb69b877cf8d045d5cccaaaed52524b6e098b4abe8212994f73
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set the Redis password}
+    command:
+      - sh
+      - -c
+      - exec redis-server --requirepass "$${REDIS_PASSWORD}" --maxmemory-policy noeviction
+    volumes:
+      - redis-data:/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+networks:
+  frontend:
+  data:
+    internal: true
+
+volumes:
+  db-data:
+  redis-data:
+  server-data:

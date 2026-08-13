@@ -8,5 +8,20 @@ export const getLocalDepsLayerPath = (
 ): string => {
   const checksum = flatApplication.yarnLockChecksum ?? 'default';
 
-  return join(LOGIC_FUNCTION_EXECUTOR_TMPDIR_FOLDER, 'deps', checksum);
+  if (
+    checksum.length > 128 ||
+    !/^[a-zA-Z0-9_-]+$/.test(checksum) ||
+    checksum === '.' ||
+    checksum === '..'
+  ) {
+    throw new Error('Invalid yarn lock checksum');
+  }
+
+  return join(
+    LOGIC_FUNCTION_EXECUTOR_TMPDIR_FOLDER,
+    'deps',
+    flatApplication.workspaceId,
+    flatApplication.universalIdentifier,
+    checksum,
+  );
 };

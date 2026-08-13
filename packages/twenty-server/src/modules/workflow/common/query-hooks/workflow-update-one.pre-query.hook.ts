@@ -15,6 +15,11 @@ export class WorkflowUpdateOnePreQueryHook implements WorkspacePreQueryHookInsta
   ): Promise<UpdateOneResolverArgs<WorkflowWorkspaceEntity>> {
     assertWorkflowStatusesNotSet(payload.data.statuses);
 
-    return payload;
+    const { coreWorkflowId: _coreWorkflowId, ...safeData } = payload.data;
+
+    return {
+      ...payload,
+      data: safeData as WorkflowWorkspaceEntity,
+    };
   }
 }

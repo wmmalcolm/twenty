@@ -59,7 +59,7 @@ export class SmtpClientProvider {
         pass: smtpParams.password,
       },
       tls: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: true,
       },
     };
 

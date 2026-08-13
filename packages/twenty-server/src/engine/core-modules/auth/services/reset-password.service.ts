@@ -287,6 +287,37 @@ export class ResetPasswordService {
     };
   }
 
+  async consumePasswordResetToken(
+    resetToken: string,
+  ): Promise<ValidatePasswordResetTokenDTO> {
+    const validatedToken = await this.validatePasswordResetToken(resetToken);
+    const hashedResetToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    const claimResult = await this.appTokenRepository.update(
+      {
+        value: hashedResetToken,
+        type: AppTokenType.PasswordResetToken,
+        expiresAt: MoreThan(new Date()),
+        revokedAt: IsNull(),
+      },
+      {
+        revokedAt: new Date(),
+      },
+    );
+
+    if (claimResult.affected !== 1) {
+      throw new AuthException(
+        'Token is invalid',
+        AuthExceptionCode.FORBIDDEN_EXCEPTION,
+      );
+    }
+
+    return validatedToken;
+  }
+
   async invalidatePasswordResetToken(
     userId: string,
   ): Promise<InvalidatePasswordDTO> {

@@ -88,4 +88,18 @@ describe('WorkflowCreateOnePreQueryHook', () => {
     expect(result.data).not.toHaveProperty('statuses');
     expect(result.data.name).toBe('My workflow');
   });
+
+  it('should strip the server-managed coreWorkflowId', async () => {
+    const result = await hook.execute(
+      authContext,
+      objectName,
+      buildPayload({
+        name: 'My workflow',
+        coreWorkflowId: '2b72bea5-b9cd-47e8-a223-79b5ed60f117',
+      }),
+    );
+
+    expect(result.data).not.toHaveProperty('coreWorkflowId');
+    expect(result.data.name).toBe('My workflow');
+  });
 });

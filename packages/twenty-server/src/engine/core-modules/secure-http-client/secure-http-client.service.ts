@@ -12,6 +12,28 @@ import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twent
 
 import { type OutboundRequestContext } from './outbound-request-context.type';
 
+const sanitizeUrlForLogging = (
+  value: string | undefined,
+  baseUrl?: string,
+): string => {
+  if (!value) {
+    return '<unknown-url>';
+  }
+
+  try {
+    const parsedUrl = new URL(value, baseUrl);
+
+    parsedUrl.username = '';
+    parsedUrl.password = '';
+    parsedUrl.search = '';
+    parsedUrl.hash = '';
+
+    return parsedUrl.toString();
+  } catch {
+    return '<invalid-url>';
+  }
+};
+
 const MAX_REDIRECTS = 5;
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
 
@@ -84,8 +106,13 @@ export class SecureHttpClientService {
 
     if (context) {
       client.interceptors.request.use((requestConfig) => {
+        const sanitizedUrl = sanitizeUrlForLogging(
+          requestConfig.url,
+          requestConfig.baseURL,
+        );
+
         this.logger.log(
-          `Outbound HTTP request: ${requestConfig.method?.toUpperCase()} ${requestConfig.url} ` +
+          `Outbound HTTP request: ${requestConfig.method?.toUpperCase()} ${sanitizedUrl} ` +
             `[workspace=${context.workspaceId}, source=${context.source}` +
             `${context.userId ? `, user=${context.userId}` : ''}]`,
         );

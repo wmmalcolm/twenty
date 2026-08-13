@@ -16,6 +16,7 @@ import { LogicFunctionResourceService } from 'src/engine/core-modules/logic-func
 import { SdkClientArchiveService } from 'src/engine/core-modules/sdk-client/sdk-client-archive.service';
 import { DriverFactoryBase } from 'src/engine/core-modules/twenty-config/dynamic-factory.base';
 import { ConfigVariablesGroup } from 'src/engine/core-modules/twenty-config/enums/config-variables-group.enum';
+import { NodeEnvironment } from 'src/engine/core-modules/twenty-config/interfaces/node-environment.interface';
 import { ConfigGroupHashService } from 'src/engine/core-modules/twenty-config/services/config-group-hash.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
@@ -51,6 +52,13 @@ export class LogicFunctionDriverFactory extends DriverFactoryBase<LogicFunctionD
         return new DisabledDriver();
 
       case LogicFunctionDriverType.LOCAL:
+        if (
+          this.twentyConfigService.get('NODE_ENV') ===
+          NodeEnvironment.PRODUCTION
+        ) {
+          return new DisabledDriver();
+        }
+
         return new LocalDriver({
           logicFunctionResourceService: this.logicFunctionResourceService,
           sdkClientArchiveService: this.sdkClientArchiveService,

@@ -4,7 +4,8 @@ import { FileFolder } from 'twenty-shared/types';
 
 import { fileFolderConfigs } from 'src/engine/core-modules/file/interfaces/file-folder.interface';
 
-import { FileTokenJwtPayload } from 'src/engine/core-modules/auth/types/file-token-jwt-payload.type';
+import { type FileTokenJwtPayload } from 'src/engine/core-modules/auth/types/file-token-jwt-payload.type';
+import { JwtTokenTypeEnum } from 'src/engine/core-modules/auth/types/jwt-token-type.enum';
 import { JwtWrapperService } from 'src/engine/core-modules/jwt/services/jwt-wrapper.service';
 
 export const SUPPORTED_FILE_FOLDERS = [
@@ -38,30 +39,25 @@ export class FileByIdGuard implements CanActivate {
       return false;
     }
 
+    let payload: FileTokenJwtPayload;
+
     try {
-      const payload = await this.jwtWrapperService.verifyJwtToken(fileToken, {
+      payload = await this.jwtWrapperService.verifyJwtToken(fileToken, {
         ignoreExpiration: fileFolderConfigs[fileFolder].ignoreExpirationToken,
       });
 
-      if (!payload.workspaceId) {
+      if (
+        payload.type !== JwtTokenTypeEnum.FILE ||
+        !payload.workspaceId ||
+        payload.fileId !== fileId
+      ) {
         return false;
       }
     } catch {
       return false;
     }
 
-    const decodedPayload = this.jwtWrapperService.decode<FileTokenJwtPayload>(
-      fileToken,
-      {
-        json: true,
-      },
-    );
-
-    request.workspaceId = decodedPayload.workspaceId;
-
-    if (decodedPayload.fileId !== fileId) {
-      return false;
-    }
+    request.workspaceId = payload.workspaceId;
 
     return true;
   }

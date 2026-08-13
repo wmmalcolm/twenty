@@ -1064,14 +1064,13 @@ export class AuthResolver {
     @Args()
     { passwordResetToken, newPassword }: UpdatePasswordViaResetTokenInput,
   ): Promise<InvalidatePasswordDTO> {
-    const { id } =
-      await this.resetPasswordService.validatePasswordResetToken(
-        passwordResetToken,
-      );
+    const { id } = await this.resetPasswordService.consumePasswordResetToken(
+      passwordResetToken,
+    );
 
     await this.authService.updatePassword(id, newPassword);
 
-    return await this.resetPasswordService.invalidatePasswordResetToken(id);
+    return { success: true };
   }
 
   @Query(() => ValidatePasswordResetTokenDTO)

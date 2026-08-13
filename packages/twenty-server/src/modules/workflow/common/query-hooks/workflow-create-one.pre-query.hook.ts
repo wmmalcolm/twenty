@@ -12,11 +12,15 @@ export class WorkflowCreateOnePreQueryHook implements WorkspacePreQueryHookInsta
     _objectName: string,
     payload: CreateOneResolverArgs<WorkflowWorkspaceEntity>,
   ): Promise<CreateOneResolverArgs<WorkflowWorkspaceEntity>> {
-    const { statuses: _statuses, ...dataWithoutStatuses } = payload.data; // silent not to break creation from view with filter
+    const {
+      statuses: _statuses,
+      coreWorkflowId: _coreWorkflowId,
+      ...safeData
+    } = payload.data; // system-managed fields must never be client controlled
 
     return {
       ...payload,
-      data: dataWithoutStatuses as WorkflowWorkspaceEntity,
+      data: safeData as WorkflowWorkspaceEntity,
     };
   }
 }

@@ -105,6 +105,15 @@ export class ConfigVariables {
   @ConfigVariablesMetadata({
     group: ConfigVariablesGroup.ADVANCED_SETTINGS,
     description:
+      'Enable unauthenticated public workflow webhook triggers. Keep disabled unless caller authentication is implemented upstream.',
+    type: ConfigVariableType.BOOLEAN,
+  })
+  @IsOptional()
+  UNSAFE_PUBLIC_WORKFLOW_WEBHOOK_TRIGGERS_ENABLED = false;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.ADVANCED_SETTINGS,
+    description:
       'Lock workspace schema DDL changes (for hot upgrades). Blocks sign-up, workspace deletion, and all metadata schema changes.',
     isEnvOnly: true,
     type: ConfigVariableType.BOOLEAN,
