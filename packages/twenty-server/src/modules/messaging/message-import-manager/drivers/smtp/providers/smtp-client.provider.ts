@@ -10,6 +10,7 @@ import { isDefined } from 'twenty-shared/utils';
 import { Repository } from 'typeorm';
 
 import { buildSmtpTlsOptions } from 'src/engine/core-modules/imap-smtp-caldav-connection/utils/build-smtp-tls-options.util';
+import { buildVerifiedTlsOptions } from 'src/engine/core-modules/imap-smtp-caldav-connection/utils/build-verified-tls-options.util';
 import { SecureHttpClientService } from 'src/engine/core-modules/secure-http-client/secure-http-client.service';
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
 import { ConnectedAccountTokenEncryptionService } from 'src/engine/metadata-modules/connected-account/services/connected-account-token-encryption.service';
@@ -58,9 +59,7 @@ export class SmtpClientProvider {
         user: smtpParams.username ?? connectedAccount.handle ?? '',
         pass: smtpParams.password,
       },
-      tls: {
-        rejectUnauthorized: true,
-      },
+      tls: buildVerifiedTlsOptions(smtpParams.host),
     };
 
     const transporter = createTransport(options);

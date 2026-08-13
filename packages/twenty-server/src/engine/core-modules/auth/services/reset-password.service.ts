@@ -10,7 +10,7 @@ import { PasswordResetLinkEmail, renderEmail } from 'twenty-emails';
 import { type APP_LOCALES } from 'twenty-shared/translations';
 import { AppPath } from 'twenty-shared/types';
 import { getAppPath, isDefined } from 'twenty-shared/utils';
-import { IsNull, MoreThan, Repository } from 'typeorm';
+import { type EntityManager, IsNull, MoreThan, Repository } from 'typeorm';
 
 import {
   AppTokenEntity,
@@ -289,6 +289,7 @@ export class ResetPasswordService {
 
   async consumePasswordResetToken(
     resetToken: string,
+    entityManager?: EntityManager,
   ): Promise<ValidatePasswordResetTokenDTO> {
     const validatedToken = await this.validatePasswordResetToken(resetToken);
     const hashedResetToken = crypto
@@ -296,7 +297,11 @@ export class ResetPasswordService {
       .update(resetToken)
       .digest('hex');
 
-    const claimResult = await this.appTokenRepository.update(
+    const appTokenRepository = entityManager
+      ? entityManager.getRepository(AppTokenEntity)
+      : this.appTokenRepository;
+
+    const claimResult = await appTokenRepository.update(
       {
         value: hashedResetToken,
         type: AppTokenType.PasswordResetToken,
@@ -314,6 +319,17 @@ export class ResetPasswordService {
         AuthExceptionCode.FORBIDDEN_EXCEPTION,
       );
     }
+
+    await appTokenRepository.update(
+      {
+        userId: validatedToken.id,
+        type: AppTokenType.PasswordResetToken,
+        revokedAt: IsNull(),
+      },
+      {
+        revokedAt: new Date(),
+      },
+    );
 
     return validatedToken;
   }

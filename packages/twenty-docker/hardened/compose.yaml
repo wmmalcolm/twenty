@@ -12,6 +12,8 @@ x-app-environment: &app-environment
   AUTH_PASSWORD_ENABLED: "true"
   AUTH_GOOGLE_ENABLED: "false"
   AUTH_MICROSOFT_ENABLED: "false"
+  IS_EMAIL_VERIFICATION_REQUIRED: "true"
+  IS_CONFIG_VARIABLES_IN_DB_ENABLED: "false"
   SIGN_IN_PREFILLED: "false"
   IS_MULTIWORKSPACE_ENABLED: "false"
   IS_BILLING_ENABLED: "false"
@@ -43,7 +45,7 @@ services:
     volumes:
       - server-data:/app/packages/twenty-server/.local-storage
     ports:
-      - "${BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:?Set a unique loopback port}:3000"
+      - "127.0.0.1:${HOST_PORT:?Set a unique loopback port}:3000"
     networks:
       - frontend
       - data
@@ -72,6 +74,7 @@ services:
       - server-data:/app/packages/twenty-server/.local-storage
     networks:
       - data
+      - egress
     depends_on:
       server:
         condition: service_healthy
@@ -122,6 +125,7 @@ services:
 
 networks:
   frontend:
+  egress:
   data:
     internal: true
 

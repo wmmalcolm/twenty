@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 
 import crypto, { randomUUID } from 'node:crypto';
 
@@ -11,7 +11,7 @@ import { PermissionFlagType } from 'twenty-shared/constants';
 import { AppPath, ConnectedAccountProvider } from 'twenty-shared/types';
 import { isNonEmptyString } from '@sniptt/guards';
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
-import { IsNull, Repository } from 'typeorm';
+import { type DataSource, type EntityManager, IsNull, Repository } from 'typeorm';
 
 import {
   AppTokenEntity,
@@ -106,6 +106,8 @@ export class AuthService {
     private readonly featureFlagService: FeatureFlagService,
     private readonly createSSOConnectedAccountService: CreateSSOConnectedAccountService,
     private readonly userSessionService: UserSessionService,
+    @InjectDataSource()
+    private readonly coreDataSource: DataSource,
   ) {}
 
   private async checkAccessAndUseInvitationOrThrow(
@@ -655,6 +657,7 @@ export class AuthService {
   async updatePassword(
     userId: string,
     newPassword: string,
+    beforePasswordPersist?: (entityManager: EntityManager) => Promise<void>,
   ): Promise<UpdatePasswordDTO> {
     if (!userId) {
       throw new AuthException(
@@ -698,26 +701,6 @@ export class AuthService {
 
     const newPasswordHash = await hashPassword(newPassword);
 
-    await this.userRepository.update(userId, {
-      passwordHash: newPasswordHash,
-    });
-
-    await this.appTokenRepository.update(
-      {
-        userId,
-        type: AppTokenType.RefreshToken,
-        revokedAt: IsNull(),
-      },
-      {
-        revokedAt: new Date(),
-      },
-    );
-
-    await this.userSessionService.revokeAllSessionsForUser({
-      userId,
-      reason: UserSessionRevokedReason.PasswordChanged,
-    });
-
     const emailTemplate = PasswordUpdateNotifyEmail({
       userName: `${user.firstName} ${user.lastName}`,
       email: user.email,
@@ -731,6 +714,30 @@ export class AuthService {
     const passwordChangedMsg = msg`Your Password Has Been Successfully Changed`;
     const i18n = this.i18nService.getI18nInstance(firstUserWorkspace.locale);
     const subject = i18n._(passwordChangedMsg);
+
+    await this.coreDataSource.transaction(async (entityManager) => {
+      await beforePasswordPersist?.(entityManager);
+
+      await entityManager.getRepository(UserEntity).update(userId, {
+        passwordHash: newPasswordHash,
+      });
+
+      await entityManager.getRepository(AppTokenEntity).update(
+        {
+          userId,
+          type: AppTokenType.RefreshToken,
+          revokedAt: IsNull(),
+        },
+        {
+          revokedAt: new Date(),
+        },
+      );
+    });
+
+    await this.userSessionService.revokeAllSessionsForUser({
+      userId,
+      reason: UserSessionRevokedReason.PasswordChanged,
+    });
 
     await this.emailService.send({
       from: `${this.twentyConfigService.get(

@@ -65,6 +65,20 @@ describe('WorkflowCreateManyPreQueryHook', () => {
     expect(result.data[0].name).toBe('Workflow 1');
   });
 
+  it('should strip server-managed coreWorkflowId from every entry', async () => {
+    const result = await hook.execute(
+      authContext,
+      objectName,
+      buildPayload([
+        { name: 'Workflow 1', coreWorkflowId: 'core-workflow-1' },
+        { name: 'Workflow 2', coreWorkflowId: 'core-workflow-2' },
+      ]),
+    );
+
+    expect(result.data[0]).not.toHaveProperty('coreWorkflowId');
+    expect(result.data[1]).not.toHaveProperty('coreWorkflowId');
+  });
+
   it('should leave entries untouched when statuses is not set', async () => {
     const result = await hook.execute(
       authContext,

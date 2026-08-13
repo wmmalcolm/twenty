@@ -5,6 +5,10 @@ import { isDefined } from 'twenty-shared/utils';
 import { parseDataFromContentType } from 'twenty-shared/workflow';
 
 import { SecureHttpClientService } from 'src/engine/core-modules/secure-http-client/secure-http-client.service';
+import {
+  sanitizeUrlForLogging,
+  sanitizeUrlsInText,
+} from 'src/engine/core-modules/secure-http-client/utils/sanitize-url-for-logging.util';
 import { HttpRequestInputZodSchema } from 'src/engine/core-modules/tool/tools/http-tool/http-tool.schema';
 import { type HttpRequestInput } from 'src/engine/core-modules/tool/tools/http-tool/types/http-request-input.type';
 import { type ToolInput } from 'src/engine/core-modules/tool/types/tool-input.type';
@@ -32,6 +36,7 @@ export class HttpTool implements Tool {
     const { url, method, headers, body } = parameters as HttpRequestInput;
     const headersCopy = { ...headers };
     const isMethodForBody = ['POST', 'PUT', 'PATCH'].includes(method);
+    const sanitizedUrl = sanitizeUrlForLogging(url);
 
     try {
       const axiosConfig: AxiosRequestConfig = {
@@ -64,7 +69,7 @@ export class HttpTool implements Tool {
 
       return {
         success: true,
-        message: `HTTP ${method} request to ${url} completed successfully`,
+        message: `HTTP ${method} request to ${sanitizedUrl} completed successfully`,
         result: response.data,
         status: response.status,
         statusText: response.statusText,
@@ -74,8 +79,11 @@ export class HttpTool implements Tool {
       if (isAxiosError(error)) {
         return {
           success: false,
-          message: `HTTP ${method} request to ${url} failed`,
-          error: error.response?.data || error.message || 'HTTP request failed',
+          message: `HTTP ${method} request to ${sanitizedUrl} failed`,
+          error:
+            error.response?.data ||
+            sanitizeUrlsInText(error.message) ||
+            'HTTP request failed',
           status: error.response?.status,
           statusText: error.response?.statusText,
           headers: error.response?.headers as
@@ -87,8 +95,11 @@ export class HttpTool implements Tool {
 
       return {
         success: false,
-        message: `HTTP ${method} request to ${url} failed`,
-        error: error instanceof Error ? error.message : 'HTTP request failed',
+        message: `HTTP ${method} request to ${sanitizedUrl} failed`,
+        error:
+          error instanceof Error
+            ? sanitizeUrlsInText(error.message)
+            : 'HTTP request failed',
       };
     }
   }

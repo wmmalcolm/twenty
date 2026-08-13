@@ -8,31 +8,10 @@ import { buildAxiosFetch } from '@lifeomic/axios-fetch';
 
 import { createSsrfSafeAgent } from 'src/engine/core-modules/secure-http-client/utils/create-ssrf-safe-agent.util';
 import { resolveAndValidateHostname } from 'src/engine/core-modules/secure-http-client/utils/resolve-and-validate-hostname.util';
+import { sanitizeUrlForLogging } from 'src/engine/core-modules/secure-http-client/utils/sanitize-url-for-logging.util';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 
 import { type OutboundRequestContext } from './outbound-request-context.type';
-
-const sanitizeUrlForLogging = (
-  value: string | undefined,
-  baseUrl?: string,
-): string => {
-  if (!value) {
-    return '<unknown-url>';
-  }
-
-  try {
-    const parsedUrl = new URL(value, baseUrl);
-
-    parsedUrl.username = '';
-    parsedUrl.password = '';
-    parsedUrl.search = '';
-    parsedUrl.hash = '';
-
-    return parsedUrl.toString();
-  } catch {
-    return '<invalid-url>';
-  }
-};
 
 const MAX_REDIRECTS = 5;
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);

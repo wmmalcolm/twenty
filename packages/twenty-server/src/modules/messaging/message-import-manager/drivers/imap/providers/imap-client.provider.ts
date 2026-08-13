@@ -7,6 +7,7 @@ import { isDefined } from 'twenty-shared/utils';
 import { Repository } from 'typeorm';
 
 import { buildImapTlsOptions } from 'src/engine/core-modules/imap-smtp-caldav-connection/utils/build-imap-tls-options.util';
+import { buildVerifiedTlsOptions } from 'src/engine/core-modules/imap-smtp-caldav-connection/utils/build-verified-tls-options.util';
 import { SecureHttpClientService } from 'src/engine/core-modules/secure-http-client/secure-http-client.service';
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
 import { ConnectedAccountTokenEncryptionService } from 'src/engine/metadata-modules/connected-account/services/connected-account-token-encryption.service';
@@ -103,9 +104,7 @@ export class ImapClientProvider {
         pass: imapParams.password,
       },
       logger: false,
-      tls: {
-        rejectUnauthorized: true,
-      },
+      tls: buildVerifiedTlsOptions(imapParams.host),
       connectionTimeout: ImapClientProvider.CONNECTION_TIMEOUT_MS,
       greetingTimeout: ImapClientProvider.GREETING_TIMEOUT_MS,
     });

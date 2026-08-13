@@ -5,11 +5,11 @@ services:
       dockerfile: packages/twenty-docker/twenty/Dockerfile
       target: twenty
       args:
-        APP_VERSION: hardened-${SOURCE_REVISION:?Set the audited source revision}
+        APP_VERSION: 0.0.0-hardened.${SOURCE_REVISION:?Set the audited source revision}
   worker:
     build:
       context: ../../..
       dockerfile: packages/twenty-docker/twenty/Dockerfile
       target: twenty
       args:
-        APP_VERSION: hardened-${SOURCE_REVISION:?Set the audited source revision}
+        APP_VERSION: 0.0.0-hardened.${SOURCE_REVISION:?Set the audited source revision}

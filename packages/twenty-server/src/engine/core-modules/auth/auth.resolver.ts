@@ -1064,11 +1064,24 @@ export class AuthResolver {
     @Args()
     { passwordResetToken, newPassword }: UpdatePasswordViaResetTokenInput,
   ): Promise<InvalidatePasswordDTO> {
-    const { id } = await this.resetPasswordService.consumePasswordResetToken(
+    const { id } = await this.resetPasswordService.validatePasswordResetToken(
       passwordResetToken,
     );
 
-    await this.authService.updatePassword(id, newPassword);
+    await this.authService.updatePassword(id, newPassword, async (manager) => {
+      const claimedToken =
+        await this.resetPasswordService.consumePasswordResetToken(
+          passwordResetToken,
+          manager,
+        );
+
+      if (claimedToken.id !== id) {
+        throw new AuthException(
+          'Token is invalid',
+          AuthExceptionCode.FORBIDDEN_EXCEPTION,
+        );
+      }
+    });
 
     return { success: true };
   }
