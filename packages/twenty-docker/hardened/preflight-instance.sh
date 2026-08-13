@@ -81,6 +81,15 @@ if not scan.get('artifacts'):
     raise SystemExit('Approval scan has no sealed artifacts')
 if target.get('revision') != expected_revision:
     raise SystemExit('Approval scan target does not match source revision')
+
+for artifact in scan['artifacts']:
+    artifact_path = manifest_path.parent / artifact['path']
+    if not artifact_path.is_file() or artifact_path.is_symlink():
+        raise SystemExit(f'Missing sealed artifact: {artifact_path}')
+    import hashlib
+    digest = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+    if digest != artifact.get('sha256'):
+        raise SystemExit(f'Sealed artifact digest mismatch: {artifact_path}')
 PY
 
 required_keys=(

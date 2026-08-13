@@ -47,6 +47,12 @@ rejects a local commit that is not bound to that external review artifact.
 After the image build, the wrapper performs an authenticated TLS SMTP handshake
 and refuses to continue if the server, credentials, or certificate fail.
 
+The manifest is an operator approval record, not a cryptographic signature from
+Codex. Before setting these fields, the operator must compare the manifest path,
+scan ID, target revision, and sealed timestamp with the completed scan shown in
+the Codex Security workbench. The preflight validates the manifest structure and
+every sealed artifact digest, but this human comparison is the trust anchor.
+
 Start one isolated instance:
 
 ```bash
