@@ -1,0 +1,3 @@
+Native seeded member direct Company GET status: 200
+This is a synthetic client. A 200 means portal assignment checks do not constrain native generic API access.
+No Enterprise purchase or license bypass occurred. Desktop delivery exposes only the dedicated portal; native API remains internal.

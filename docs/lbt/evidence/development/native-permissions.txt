@@ -1,0 +1,8 @@
+PASS native password login and workspace token exchange, two users
+PASS native REST denies member update to protected allocation field
+PASS native GraphQL denies member update to protected allocation field
+PASS native REST denies creation with protected allocation field
+PASS allowed field update persists while denied field remains unchanged
+PASS unauthenticated record access denied
+RLS capability result: [{"message":"Row level permission predicate feature is disabled","code":"FORBIDDEN"}]
+Probe state saved privately; no tokens included in evidence output

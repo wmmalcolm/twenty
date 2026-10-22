@@ -1,0 +1,9 @@
+SOURCE-HOSTED fresh disposable database; this is not a Docker runtime or Mac result.
+PASS native sign-in and synthetic workspace identity for all four accounts; anonymous state denied
+PASS native client/facility/equipment reference, two visits, rejected overlap without partial save, adjacent booking and premature-completion denial
+PASS both assigned executions, exact report bytes, author-review denial, independent approvals and controlled completion
+PASS assigned-only lists and current report permissions (report checks run when reports exist)
+PASS completed cycle rejects repeated completion and new report mutation; no reset performed
+COMPLETE new synthetic fixture retained for browser inspection.
+LIMIT: This checks the dedicated LBT portal, not native Twenty RLS, browser layout, full acceptance or disaster recovery.
+HARNESS: disposable test database removed after verification; retained original source demonstration was not replaced.

@@ -1,0 +1,117 @@
+[
+  {
+    "platform": {
+      "architecture": "amd64",
+      "os": "linux"
+    },
+    "digest": "sha256:f452836040018082f5383b5969c66ed3009bfd38932ae188a28d206870ae277b"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:8f6893091f6b6befd7fe90ce8d4109c76bdbb44575decfe5c33450026b57c062"
+  },
+  {
+    "platform": {
+      "architecture": "arm",
+      "os": "linux",
+      "variant": "v5"
+    },
+    "digest": "sha256:8d8589ef990a07cd08fdf304b398a600c02c1b509b74c0bd0597c632e8ee4c49"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:2a4a853673e94d2c7b565d9e2149711285361355cd2cf679d03ccc801c9133ed"
+  },
+  {
+    "platform": {
+      "architecture": "arm",
+      "os": "linux",
+      "variant": "v7"
+    },
+    "digest": "sha256:913b7ec92d48845417308b2d8284619ccc8cd39f5ad68127f3dde108a93cb8cb"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:7dc1afc5503d2a2de1e7bb35d6a889b282e6c7ad707938c68b133e22b5fee04a"
+  },
+  {
+    "platform": {
+      "architecture": "arm64",
+      "os": "linux",
+      "variant": "v8"
+    },
+    "digest": "sha256:e88d77a8d95d6237d88fb9c291cc28463835447ee30185e7f0eb3ed161c95c0c"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:589a4e758a6a93fe884b3948658ded597d72f9adec0d581fc22c5606a85193fc"
+  },
+  {
+    "platform": {
+      "architecture": "386",
+      "os": "linux"
+    },
+    "digest": "sha256:9f429d47d8542f742f0b6236b6638612a8618efdf63675156cb4e2b73a69df99"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:f6fcd1d23d233ff11c1dfa7b1bad1e2513c695996fe83165875a71d81859222d"
+  },
+  {
+    "platform": {
+      "architecture": "mips64le",
+      "os": "linux"
+    },
+    "digest": "sha256:2dd24d416d469fe18f1f26238ff601ab8346ee09cff263f9f8b86cc4df7dc4ae"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:923b0eb2c5ab92e481b6732ea70e7ad9f78f0e67a7fd5274914b27362a559ccc"
+  },
+  {
+    "platform": {
+      "architecture": "ppc64le",
+      "os": "linux"
+    },
+    "digest": "sha256:9782aaa0fc716b29b3b8c1d918021dcdb9c8fa7e171fb7a9218b485de80c8d65"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:e702b4d785048a33703a71f05338a678c0eac8fd460310ba710314efb4c7db2d"
+  },
+  {
+    "platform": {
+      "architecture": "s390x",
+      "os": "linux"
+    },
+    "digest": "sha256:fbf9427b830ff21edb021b01c991f0d2f3f8cba2f9321cb76d8da1d1da402a12"
+  },
+  {
+    "platform": {
+      "architecture": "unknown",
+      "os": "unknown"
+    },
+    "digest": "sha256:a46bcc6490e5700208179f506bb5cebd2780fbcde0b9de9f2b9a86cc8495ea6f"
+  }
+]

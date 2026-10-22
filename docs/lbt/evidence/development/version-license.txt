@@ -1,0 +1,9 @@
+Source commit: 499a6474d2b2934659677d46a9c40fa881c5f94f
+Root package version (not release identification): 0.2.1
+Pinned Node: 24.16.0
+Yarn: 4.13.0
+Enterprise license: user confirms none; RLS API returns FORBIDDEN / disabled
+e8c2240a022c9d44cad9e5113857fe1f6b0d3c997763e62e4cb743f3b2a2299d  LICENSE
+2722b61f414f07f08be7f1f1316012813818f26f1c40d6a24a748686cec7d2ff  .nvmrc
+730e0619753d39754c9e7613c7e57f084ea18b3244f5ba9a5a60bd3da048450b  .yarn/releases/yarn-4.13.0.cjs
+33e2334736ad027f58541717415df28174b4a75b968fa77a4d42a3886d25ddfd  packages/twenty-server/src/engine/metadata-modules/row-level-permission-predicate/services/row-level-permission-predicate.service.ts

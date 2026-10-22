@@ -1,0 +1,4 @@
+PASS full PostgreSQL dump restored into a new isolated database; all 12 LBT tables and native workspace IDs match exactly
+PASS restored completed cycle, both report byte hashes, approvals, reservations, audit, receipts and captured outbox
+PASS native local-file storage copied and SHA-256 checked: 16 files
+LIMIT: App-secret/runtime config is retained separately; this is a data restore test, not a full fresh Mac application restoration.

@@ -1,0 +1,24 @@
+Cloud Docker package evidence — 2026-10-22
+Upstream base: 499a6474d2b2934659677d46a9c40fa881c5f94f
+Clean focused immutable-lock install and shared/SDK/emails/server build completed.
+Server compiler: Successfully compiled 7303 files with swc.
+Image: lbt-private-development:499a6474
+Image ID: sha256:0be2fa6f5760027c01d797191f71cc9a80984e602bc2a12ff4232b36bd51f58d
+Architecture: linux/amd64; size 4075607051 bytes.
+Runtime result: BLOCKED before app-container creation: no space left on device.
+Cloud storage: 32 GB overlay; Docker vfs. At diagnosis ~2.9 GB free after disposable build cleanup.
+Build history retained stale Running record; active cache could not be pruned.
+No daemon restart, image deletion, database-volume deletion or storage-driver change performed.
+Removed this task download ZIP cache; it did not materially increase overlay free space.
+Original image, source, databases, backups and evidence preserved.
+Cloud native/source-hosted service remains available for internal tests only; no inbound preview.
+Mac ARM64 build/runtime/browser access: NOT RUN from this executor.
+MATCH clean-build context packages/lbt-development/server.cjs
+MATCH clean-build context packages/lbt-development/domain.cjs
+MATCH clean-build context packages/lbt-development/schema.sql
+MATCH clean-build context packages/lbt-development/app.js
+MATCH clean-build context packages/lbt-development/index.html
+MATCH clean-build context packages/lbt-development/style.css
+MATCH clean-build context infra/lbt/desktop/entry.cjs
+MATCH clean-build context infra/lbt/desktop/Dockerfile
+MATCH clean-build context infra/lbt/desktop/build.sh

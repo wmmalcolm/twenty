@@ -1,0 +1,4 @@
+PASS native sign-in and synthetic workspace identity for all four accounts; anonymous state denied
+PASS assigned-only lists and current report permissions (report checks run when reports exist)
+COMPLETE existing fixture preserved and rechecked; workflow creation was not rerun.
+LIMIT: This checks the dedicated LBT portal, not native Twenty RLS, browser layout, full acceptance or disaster recovery.

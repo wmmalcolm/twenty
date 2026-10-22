@@ -1,0 +1,9 @@
+PASS native Twenty password authentication for scheduler, two employees and reviewer; no persistent credential grants
+PASS native client reference → facility → equipment → idempotent cycle with exactly two visits; assigned-only portal lists
+PASS explicit PostgreSQL connection rolls back booking, reservations, version, audit, outbox and receipt together after injected failure
+PASS shared-meter overlap rejected, adjacent visits accepted, concurrent scheduling has one winner, idempotency replay and changed-intent denial
+PASS assignment revocation takes effect on list and direct command; early completion denied
+PASS report bytes require current session and assignment; cross-employee/anonymous/forged-token/deactivated access denied; version-specific independent review and immutable evidence
+PASS instrument-only conflict across different cycles, equipment and employees; losing booking leaves no visit time
+PASS controlled completion requires both current approvals; concurrent completion has one winner; completed cycle rejects mutation; audit/outbox counts match
+LIMIT: These controls protect the dedicated LBT API, not native Twenty generic APIs; native RLS remains license-gated.

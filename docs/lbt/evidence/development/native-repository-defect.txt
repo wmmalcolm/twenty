@@ -1,0 +1,8 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+1 !== 0
+
+    at /workspace/twenty/tests/lbt/feasibility/native-transactions.cjs:130:14
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async main (/workspace/twenty/tests/lbt/feasibility/native-transactions.cjs:92:5)
+EXPECTED FAILURE: ordinary repository insert survives rollback

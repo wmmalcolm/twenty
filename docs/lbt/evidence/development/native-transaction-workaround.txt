@@ -1,0 +1,3 @@
+PASS native Twenty transaction rolls back writes across two custom objects
+PASS two concurrent native transactions: one reservation commits, one conflicts
+PASS native transaction retains member field restrictions without permission bypass

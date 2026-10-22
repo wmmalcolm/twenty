@@ -1,0 +1,89 @@
+name: lbt-private-development
+services:
+  database:
+    image: postgres:16.10-bookworm@sha256:38471f330eb885e04de130b768d6db4e10469e2311879c7e5c699f6d2d8a1c74
+    command: ['postgres', '-p', '55433']
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run desktop setup first}
+      POSTGRES_DB: lbt_twenty_feasibility
+    ports:
+      - '127.0.0.1:4330:4331'
+    volumes:
+      - lbt-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'pg_isready',
+          '-U',
+          'postgres',
+          '-p',
+          '55433',
+          '-d',
+          'lbt_twenty_feasibility',
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    mem_limit: 1g
+  redis:
+    image: redis:7.4.2-bookworm@sha256:fbdbaea47b9ae4ecc2082ecdb4e1cea81e32176ffb1dcf643d422ad07427e5d9
+    network_mode: service:database
+    command:
+      [
+        'redis-server',
+        '--port',
+        '56379',
+        '--maxmemory',
+        '256mb',
+        '--maxmemory-policy',
+        'noeviction',
+      ]
+    depends_on:
+      database: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-p', '56379', 'ping']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    mem_limit: 384m
+  app:
+    image: lbt-private-development:499a6474
+    build:
+      context: ../../..
+      dockerfile: infra/lbt/desktop/Dockerfile
+    network_mode: service:database
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run desktop setup first}
+      APP_SECRET: ${APP_SECRET:?Run desktop setup first}
+    volumes:
+      - lbt-files:/data
+    depends_on:
+      database: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    mem_limit: 4g
+    cpus: 2
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          'Promise.all([fetch("http://127.0.0.1:4330/health"),fetch("http://127.0.0.1:4320/healthz")]).then(rs=>process.exit(rs.every(r=>r.ok)?0:1)).catch(()=>process.exit(1))',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+      start_period: 300s
+  archive:
+    profiles: ['tools']
+    image: postgres:16.10-bookworm@sha256:38471f330eb885e04de130b768d6db4e10469e2311879c7e5c699f6d2d8a1c74
+    network_mode: none
+    entrypoint: ['tar']
+    read_only: true
+    volumes:
+      - lbt-files:/data:ro
+    mem_limit: 128m
+volumes:
+  lbt-data:
+  lbt-files:

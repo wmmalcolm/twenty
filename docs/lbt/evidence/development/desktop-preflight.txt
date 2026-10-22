@@ -1,0 +1,17 @@
+Desktop preflight safety tests; mocked Docker/lsof, no real Docker calls
+UTC: 2026-10-22T20:49:07.274000+00:00
+desktop.sh SHA256: 1e619f91782d144563cd4b080c5e43c18a67ce9d9ad7077872f20111a2113e03
+PASS fresh preflight leaves runtime configuration absent
+PASS occupied 4330 rejects start before configuration or build
+PASS remote Docker endpoint rejected before mutation
+PASS existing container without matching config rejected
+PASS existing volume without matching config rejected
+PASS missing-config status is explanatory and does not initialize
+PASS owned port publisher permits read-only preflight
+PASS owned restart pins LBT project despite inherited recruiting project name
+PASS stop pins LBT project despite inherited recruiting project name
+PASS platform mismatch rejects start without configuration changes
+PASS explicit matching ARM64 platform passes
+PASS unsupported daemon architecture rejected
+PASS port-probe error fails closed
+PASS 13 safety cases; no real Docker resources or credentials created
